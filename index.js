@@ -1,13 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const dns= require('dns')
+const urlParser= require('url')
 const app = express();
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-
+app.use(express.urlencoded({extended: false}))
 app.use('/public', express.static(`${process.cwd()}/public`));
 
 app.get('/', function(req, res) {
@@ -22,21 +24,21 @@ app.get('/api/hello', function(req, res) {
 let urlDatabase= []
 let idCounter= 1
 app.post('/api/shorturl', (req, res) => {
-  const {originalUrl}= req.body
+  const {url}= req.body
 
-  const hostname= urlParser.parse(originalUrl).hostname
+  const hostname= urlParser.parse(url).hostname
  
   dns.lookup(hostname, (err, address) => {
     if(err) {
       return res.json({error: 'invalid url'})
     }
 
-    urlDatabase.push({original_url: originalUrl, short_url: idCounter})
+    urlDatabase.push({original_url: url, short_url: idCounter})
     idCounter++
 
-    req.json({
+    res.json({
     original_url: url,
-    short_url: shortUrl
+    short_url: idCounter
   })
   })  
 })
