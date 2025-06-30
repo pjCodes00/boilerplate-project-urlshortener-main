@@ -26,6 +26,10 @@ let idCounter= 1
 app.post('/api/shorturl', (req, res) => {
   const {url}= req.body
 
+   if (!/^https?:\/\//.test(url)) {
+    return res.json({ error: 'invalid url' });
+  }
+
   const hostname= urlParser.parse(url).hostname
  
   dns.lookup(hostname, (err, address) => {
@@ -34,22 +38,23 @@ app.post('/api/shorturl', (req, res) => {
     }
 
     urlDatabase.push({original_url: url, short_url: idCounter})
-    idCounter++
-
+    console.log(urlDatabase)
+   
     res.json({
     original_url: url,
     short_url: idCounter
   })
+   idCounter++
   })  
 })
 
 app.get('/api/shorturl/:short_url', (req, res) => {
  const shortUrl=  Number(req.params.short_url)
  
- const url= urlDatabase.find(u => u.short_url === shortUrl)
+ const entry= urlDatabase.find(u => u.short_url === shortUrl)
 
- if(url) {
-  res.redirect(url.original_url)
+ if(entry) {
+  res.redirect(entry.original_url)
  } else{
   return res.json({error: 'invalid url'})
  }
